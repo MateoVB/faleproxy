@@ -57,19 +57,22 @@ describe('Yale to Fale replacement logic', () => {
       </head>
       <body>
         <h1>Hello World</h1>
-        <p>This is a test page with no Yale references.</p>
+        <p>This is a test page with no references.</p>
       </body>
       </html>
     `;
     
     const $ = cheerio.load(htmlWithoutYale);
+    const originalHtml = $.html();
     
     // Apply the same replacement logic
     $('body *').contents().filter(function() {
       return this.nodeType === 3;
     }).each(function() {
       const text = $(this).text();
-      const newText = text.replace(/Yale/g, 'Fale').replace(/yale/g, 'fale');
+      const newText = text.replace(/Yale/g, 'Fale')
+                         .replace(/YALE/g, 'FALE')
+                         .replace(/yale/g, 'fale');
       if (text !== newText) {
         $(this).replaceWith(newText);
       }
@@ -77,16 +80,12 @@ describe('Yale to Fale replacement logic', () => {
     
     const modifiedHtml = $.html();
     
-    // Content should remain the same
-    expect(modifiedHtml).toContain('<title>Test Page</title>');
-    expect(modifiedHtml).toContain('<h1>Hello World</h1>');
-    expect(modifiedHtml).toContain('<p>This is a test page with no Yale references.</p>');
+    // Content should remain exactly the same since there are no Yale references
+    expect(modifiedHtml).toBe(originalHtml);
   });
 
   test('should handle case-insensitive replacements', () => {
-    const mixedCaseHtml = `
-      <p>YALE University, Yale College, and yale medical school are all part of the same institution.</p>
-    `;
+    const mixedCaseHtml = `<html><head></head><body><p>YALE University, Yale College, and yale medical school are all part of the same institution.</p></body></html>`;
     
     const $ = cheerio.load(mixedCaseHtml);
     
@@ -94,7 +93,9 @@ describe('Yale to Fale replacement logic', () => {
       return this.nodeType === 3;
     }).each(function() {
       const text = $(this).text();
-      const newText = text.replace(/Yale/gi, 'Fale');
+      const newText = text.replace(/Yale/g, 'Fale')
+                         .replace(/YALE/g, 'FALE')
+                         .replace(/yale/g, 'fale');
       if (text !== newText) {
         $(this).replaceWith(newText);
       }
@@ -102,6 +103,7 @@ describe('Yale to Fale replacement logic', () => {
     
     const modifiedHtml = $.html();
     
+    // Check that all case variations are replaced correctly
     expect(modifiedHtml).toContain('FALE University, Fale College, and fale medical school');
   });
 });

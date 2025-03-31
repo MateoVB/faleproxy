@@ -1,14 +1,14 @@
 # Faleproxy
 
-A Node.js web application that fetches a URL, replaces every instance of "Yale" with "Fale" in the document, and displays the modified content.
+A proxy service that replaces instances of "Yale" with "Fale" in web content, while preserving URLs and maintaining case sensitivity.
 
 ## Features
 
-- Simple and intuitive user interface
-- Fetches web content from any URL
-- Replaces all instances of "Yale" with "Fale" (case-insensitive)
-- Displays the modified content in an iframe
-- Shows original URL and page title in an info bar
+- Replaces "Yale" with "Fale" while preserving case (Yale -> Fale, YALE -> FALE, yale -> fale)
+- Preserves yale.edu URLs and email addresses
+- Supports HTML content with proper DOM parsing
+- Full test coverage with unit and integration tests
+- CI/CD pipeline with GitHub Actions and Vercel deployment
 
 ## Installation
 
@@ -34,10 +34,41 @@ npm start
 
 ## Development
 
-To run with auto-restart on file changes:
-
 ```bash
+# Install dependencies
+npm install
+
+# Run development server
 npm run dev
+
+# Run tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+```
+
+## API
+
+### POST /fetch
+
+Fetches content from a URL and replaces Yale references with Fale.
+
+Request body:
+```json
+{
+  "url": "https://example.com"
+}
+```
+
+Response:
+```json
+{
+  "success": true,
+  "content": "...", // Modified HTML content
+  "title": "...",   // Modified page title
+  "originalUrl": "https://example.com"
+}
 ```
 
 ## Testing
@@ -88,3 +119,7 @@ To enable automatic deployments to Vercel, you need to:
 - Cheerio - HTML parsing and manipulation
 - Vanilla JavaScript for frontend functionality
 - Jest, Supertest, and Nock for testing
+
+## License
+
+MIT

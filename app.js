@@ -40,8 +40,10 @@ app.post('/fetch', async (req, res) => {
         
         // Only process if it's a text node
         if (content && $(el).children().length === 0) {
-          // Replace Yale with Fale in text content only
-          content = content.replace(/Yale/g, 'Fale').replace(/yale/g, 'fale');
+          // Replace Yale with Fale in text content only, preserving case
+          content = content.replace(/Yale/g, 'Fale')
+                         .replace(/YALE/g, 'FALE')
+                         .replace(/yale/g, 'fale');
           $(el).html(content);
         }
       }
@@ -53,14 +55,18 @@ app.post('/fetch', async (req, res) => {
     }).each(function() {
       // Replace text content but not in URLs or attributes
       const text = $(this).text();
-      const newText = text.replace(/Yale/g, 'Fale').replace(/yale/g, 'fale');
+      const newText = text.replace(/Yale/g, 'Fale')
+                         .replace(/YALE/g, 'FALE')
+                         .replace(/yale/g, 'fale');
       if (text !== newText) {
         $(this).replaceWith(newText);
       }
     });
     
     // Process title separately
-    const title = $('title').text().replace(/Yale/g, 'Fale').replace(/yale/g, 'fale');
+    const title = $('title').text().replace(/Yale/g, 'Fale')
+                                  .replace(/YALE/g, 'FALE')
+                                  .replace(/yale/g, 'fale');
     $('title').text(title);
     
     return res.json({ 
