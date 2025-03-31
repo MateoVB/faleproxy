@@ -2,10 +2,9 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const { sampleHtmlWithYale } = require('./test-utils');
 const nock = require('nock');
-const express = require('express');
 const app = require('../app');
 
-// Set a different port for testing to avoid conflict with the main app
+// Set a different port for testing
 const TEST_PORT = 3099;
 let server;
 
@@ -15,17 +14,12 @@ describe('Integration Tests', () => {
     nock.disableNetConnect();
     nock.enableNetConnect('127.0.0.1');
     
-    // Create a test server
-    const testApp = express();
-    testApp.use(express.json());
-    testApp.use('/', app);
-    
     // Start the test server
-    server = testApp.listen(TEST_PORT);
+    server = app.listen(TEST_PORT);
     
     // Give the server time to start
     await new Promise(resolve => setTimeout(resolve, 1000));
-  }, 10000); // Increase timeout for server startup
+  });
 
   afterAll(async () => {
     // Close the test server
@@ -37,10 +31,6 @@ describe('Integration Tests', () => {
   });
 
   test('Should replace Yale with Fale in fetched content', async () => {
-    const mockResponse = sampleHtmlWithYale.replace(/Yale(?!\.edu)/g, 'Fale')
-                                         .replace(/YALE(?!\.edu)/g, 'FALE')
-                                         .replace(/yale(?!\.edu)/g, 'fale');
-    
     // Setup mock for example.com
     nock('https://example.com')
       .get('/')
