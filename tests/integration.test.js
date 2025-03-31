@@ -1,8 +1,8 @@
-const axios = require('axios');
 const cheerio = require('cheerio');
 const { sampleHtmlWithYale } = require('./test-utils');
 const nock = require('nock');
 const app = require('../app');
+const request = require('supertest');
 
 // Set a different port for testing
 const TEST_PORT = 3099;
@@ -16,9 +16,6 @@ describe('Integration Tests', () => {
     
     // Start the test server
     server = app.listen(TEST_PORT);
-    
-    // Give the server time to start
-    await new Promise(resolve => setTimeout(resolve, 1000));
   });
 
   afterAll(async () => {
@@ -36,16 +33,16 @@ describe('Integration Tests', () => {
       .get('/')
       .reply(200, sampleHtmlWithYale);
     
-    // Make a request to our proxy app
-    const response = await axios.post(`http://localhost:${TEST_PORT}/fetch`, {
-      url: 'https://example.com/'
-    });
+    // Use supertest instead of axios
+    const response = await request(app)
+      .post('/fetch')
+      .send({ url: 'https://example.com/' })
+      .expect(200);
     
-    expect(response.status).toBe(200);
-    expect(response.data.success).toBe(true);
+    expect(response.body.success).toBe(true);
     
     // Verify Yale has been replaced with Fale in text
-    const $ = cheerio.load(response.data.content);
+    const $ = cheerio.load(response.body.content);
     expect($('title').text()).toBe('Fale University Test Page');
     expect($('h1').text()).toBe('Welcome to Fale University');
     expect($('p').first().text()).toContain('Fale University is a private');
@@ -66,23 +63,18 @@ describe('Integration Tests', () => {
   });
 
   test('Should handle invalid URLs', async () => {
-    try {
-      await axios.post(`http://localhost:${TEST_PORT}/fetch`, {
-        url: 'not-a-valid-url'
-      });
-      fail('Should have thrown an error');
-    } catch (error) {
-      expect(error.response.status).toBe(500);
-    }
+    await request(app)
+      .post('/fetch')
+      .send({ url: 'not-a-valid-url' })
+      .expect(500);
   });
 
   test('Should handle missing URL parameter', async () => {
-    try {
-      await axios.post(`http://localhost:${TEST_PORT}/fetch`, {});
-      fail('Should have thrown an error');
-    } catch (error) {
-      expect(error.response.status).toBe(400);
-      expect(error.response.data.error).toBe('URL is required');
-    }
+    const response = await request(app)
+      .post('/fetch')
+      .send({})
+      .expect(400);
+    
+    expect(response.body.error).toBe('URL is required');
   });
 });
